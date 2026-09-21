@@ -1,7 +1,3 @@
-<script>
-    import { Card } from 'flowbite-svelte';
-</script>
-
 <style>
     :global(*) {
         font-family: "RF Dewi", sans-serif;
