@@ -43,7 +43,7 @@ contract Job {
 
     function hire() public payable {
         require(msg.value == amount, "Not enough ETH for job");
-        require(state == State.Created, "No one can have hired freelancer yet");
+        require(state == State.Created, "No one can have hired freelancer yet"); //todo: fix unclear wording
         require(msg.sender != freelancer, "Freelancer cannot hire himself");
 
         client = payable(msg.sender);
