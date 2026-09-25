@@ -23,8 +23,8 @@ contract Job {
     }
 
     function getRefund() public {
-        require(msg.sender == client, "Only clients can request refunds");
         require(state == State.Hired, "Freelancer has not been hired yet");
+        require(msg.sender == client, "Only clients can request refunds");
 
         state = State.Refunded;
         payable(client).transfer(amount);
