@@ -8,11 +8,12 @@ enum State {
 }
 
 contract Job {
-    address public freelancer;
+    address public immutable freelancer;
     address public client;
-    uint256 public amount; //amount of eth the client pays the freelancer for completing the job
-    uint256 public daysOfWork; //amount of days until job should be completed
+    uint256 public immutable amount; //amount of eth the client pays the freelancer for completing the job
+    uint256 public immutable daysOfWork; //amount of days until job should be completed
     uint256 public deadline; //timestamp of when it has to be complete
+    uint256 public approvalDeadline;
     State public state;
 
     constructor(uint256 _amount, uint256 _daysOfWork) {
@@ -38,6 +39,19 @@ contract Job {
         );
 
         state = State.Completed;
+        approvalDeadline = block.timestamp + (7 * 1 days);
+    }
+    function approve() public { //fixes arbitrary-send-eth vulnerability: client has to approve of the delivered product first
+        require(client == msg.sender, "Freelancer cannot approve");
+        require(state == State.Completed, "Freelancer has not delivered product yet");
+        payable(freelancer).transfer(amount);
+    }
+
+    function claimAutoApproval() public { //if the client has not approved of the product after 7 days, the freelancer should be transferred the amount automatically
+        require(freelancer ==  msg.sender, "Client cannot request auto approval");
+        require(state == State.Completed, "Freelancer has not delivered product yet");
+        require(approvalDeadline <= block.timestamp, "Approval deadline has not passed yet");
+        
         payable(freelancer).transfer(amount);
     }
 
