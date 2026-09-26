@@ -15,7 +15,7 @@ describe("Job", async function () {
         const amount = ethers.parseEther("1.0");
         const daysOfWork = 3
         const Job = await hre.ethers.getContractFactory("Job");
-        const job = await Job.deploy(amount, daysOfWork);
+        const job = await Job.deploy(freelancer.address, amount, daysOfWork);
 
         return { job, amount, daysOfWork, freelancer, client };
     };

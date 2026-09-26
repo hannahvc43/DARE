@@ -16,7 +16,7 @@ export const mockServices: Service[] = [
     description: "I will create a high-detail, 3D printable model of your pet based on a few reference photos.",
     price: 0.15,
     deliveryDays: 4,
-    freelancerAddress: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    freelancerAddress: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
   },
   {
     id: 2,

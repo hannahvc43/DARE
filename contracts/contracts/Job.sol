@@ -16,10 +16,10 @@ contract Job {
     uint256 public approvalDeadline;
     State public state;
 
-    constructor(uint256 _amount, uint256 _daysOfWork) {
+    constructor(address _freelancer, uint256 _amount, uint256 _daysOfWork) {
         amount = _amount;
         daysOfWork = _daysOfWork;
-        freelancer = msg.sender;
+        freelancer = _freelancer;
         state = State.Created;
     }
 
