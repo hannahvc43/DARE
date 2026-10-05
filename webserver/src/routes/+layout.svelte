@@ -1,27 +1,9 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+    import { wallet } from '$lib/wallet.svelte';
 	let { children } = $props();
-	let connectedWallet = $state(false)
-
-	async function connectWallet(){
-		if (typeof window !== "undefined" && window.ethereum){
-			try {
-				const account = await window.ethereum.request({
-					method: "eth_requestAccounts"
-				})
-				console.log("Connected: ", account[0])
-				connectedWallet = account[0]
-			}
-			catch(error){
-				console.log("Error: ", error)
-			}
-		
-		}
-		else{
-			alert("Please install the MetaMask extension to connect your wallet")
-		}
-	}
+	
 </script>
 
 <svelte:head><link rel="icon" href={favicon} />
@@ -37,12 +19,12 @@
 			<a href="/about" class="ml-4 hover:underline">About</a>
 		</div>
 		<div>
-		{#if connectedWallet}
+		{#if wallet.isConnected}
 		<div class="rounded-lg bg-purple-600 text-white p-2">
 			<b>Connected</b>
 		</div>
 		{:else}
-			<button class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700" onclick={connectWallet}>
+			<button class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700" onclick={()=>wallet.connect()}>
 				<b> Connect Wallet</b>
 			</button>
 
