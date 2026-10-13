@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Card } from "flowbite-svelte";
-  import { mockServices } from "$lib/mockJobs";
   import jobArtifact from "../../../../contracts/artifacts/contracts/Job.sol/Job.json";
   import { ethers } from "ethers";
   import { supabase } from "$lib/supabaseClient";
@@ -34,7 +33,8 @@
         freelancer_address: service.freelancerAddress,
         client_address: await signer.getAddress(),
         service_id: service.service_id,
-        status: "hired"
+        status: "hired",
+        deadline: Math.floor(Date.now()/1000) + service.deliveryDays * 86400
       });
       console.log(data, error);
     } else {
