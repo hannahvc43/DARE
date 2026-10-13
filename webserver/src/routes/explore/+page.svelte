@@ -4,9 +4,12 @@
   import jobArtifact from "../../../../contracts/artifacts/contracts/Job.sol/Job.json";
   import { ethers } from "ethers";
   import { supabase } from "$lib/supabaseClient";
-;
+  import { onMount } from "svelte";
+  import { wallet } from "$lib/wallet.svelte";
+  
+  let services = $state<any>([])
 
-  async function hireService(service: (typeof mockServices)[0]) {
+  async function hireService(service: any) {
     if (typeof window !== "undefined" && window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
@@ -25,17 +28,31 @@
         value: ethers.parseEther(service.price.toString()),
       });
 
+      console.log("service id:  ", service.service_id)
       const { data, error } = await supabase.from("jobs").insert({
         contract_address: await contract.getAddress(),
         freelancer_address: service.freelancerAddress,
         client_address: await signer.getAddress(),
-        service_id: service.id,
+        service_id: service.service_id,
+        status: "hired"
       });
       console.log(data, error);
     } else {
       alert("Please install the MetaMask extension first");
     }
   }
+
+  onMount(async () => {
+    if(wallet.isConnected){
+        const {data, error} = await supabase.from("services").select("*")
+        if (error) {
+            console.error(error)
+        }
+        else{
+            services = data 
+        }    
+      }
+    })
 
 </script>
 
@@ -51,7 +68,7 @@
   </div>
   <div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each mockServices as service}
+      {#each services as service}
         <Card href="/" horizontal size="sm" class="max-w-xl max-h-xl flex">
           <div class="m-6 bg-white">
             <h5
@@ -64,6 +81,14 @@
             >
               {service.description}
             </p>
+            <div class="flex justify-between items-center">
+                    <b class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400">
+                        Delivery in {service.deliveryDays} days
+                    </b>
+                    <b class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400">
+                        Price: {service.price} ETH
+                    </b>  
+                </div>
             <button
               class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
               onclick={() => hireService(service)}
