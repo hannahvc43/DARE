@@ -135,11 +135,22 @@ describe("Job", async function () {
     })
     describe("refund: ", function () {
         //refund:
-        it("Should allow freelancer to get a refund if the deadline has passed", async function () {
+        it("Should  not allow a refund if the job has already been completed", async function () {
+            const { job, amount, daysOfWork, freelancer, client } = await deployJobFixture();
+            await job.connect(client).hire({ value: amount });
+            await job.connect(freelancer).deliver()
+            await expect(job.connect(client).getRefund()).to.be.revertedWith("Freelancer has already submitted work");
+        })
+        it("Should allow client to get a refund if the deadline has passed", async function () {
             const { job, amount, daysOfWork, freelancer, client } = await deployJobFixture();
             await job.connect(client).hire({ value: amount });
             await time.increase(daysOfWork * 86400 + 1) //seconds in a day plus one
             await expect(job.connect(client).getRefund()).to.changeEtherBalance(client, amount);
+        })
+        it("Should not allow client to get a refund if the deadline has not passed yet", async function () {
+            const { job, amount, daysOfWork, freelancer, client } = await deployJobFixture();
+            await job.connect(client).hire({ value: amount });
+            await expect(job.connect(client).getRefund()).to.be.revertedWith("Deadline has not passed yet");
         })
         it("Should only allow the client to get a refund", async function () {
             const { job, amount, daysOfWork, freelancer, client } = await deployJobFixture();

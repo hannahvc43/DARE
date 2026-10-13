@@ -4,7 +4,8 @@ enum State {
     Created,
     Hired,
     Completed,
-    Refunded
+    Refunded,
+    Approved
 }
 
 contract Job {
@@ -24,8 +25,10 @@ contract Job {
     }
 
     function getRefund() public {
-        require(state == State.Hired, "Freelancer has not been hired yet");
+        require(state != State.Created, "Freelancer has not been hired yet");
+        require(state != State.Completed, "Freelancer has already submitted work");
         require(msg.sender == client, "Only clients can request refunds");
+        require(block.timestamp > deadline, "Deadline has not passed yet");
 
         state = State.Refunded;
         payable(client).transfer(amount);
@@ -39,11 +42,14 @@ contract Job {
         );
 
         state = State.Completed;
-        approvalDeadline = block.timestamp + (7 * 1 days);
+        approvalDeadline = block.timestamp + (7 days);
     }
     function approve() public { //fixes arbitrary-send-eth vulnerability: client has to approve of the delivered product first
         require(client == msg.sender, "Freelancer cannot approve");
         require(state == State.Completed, "Freelancer has not delivered product yet");
+        
+        state = State.Approved;
+
         payable(freelancer).transfer(amount);
     }
 
@@ -52,6 +58,8 @@ contract Job {
         require(state == State.Completed, "Freelancer has not delivered product yet");
         require(approvalDeadline <= block.timestamp, "Approval deadline has not passed yet");
         
+        state = State.Approved; //Change state so freelancer cannot try to claim auto-approval twice
+
         payable(freelancer).transfer(amount);
     }
 
