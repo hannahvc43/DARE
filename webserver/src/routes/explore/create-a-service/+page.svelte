@@ -24,7 +24,7 @@
 
 <div class="p-6">
     <div class="flex justify-between items-center gap-6">
-        <form class="flex flex-col gap-4 text-white pd-8">
+        <form class="flex flex-col gap-4 text-black pd-8">
             <div>
                 <label
                     for="title"

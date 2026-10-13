@@ -69,7 +69,7 @@
   <div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each services as service}
-        <Card href="/" horizontal size="sm" class="max-w-xl max-h-xl flex">
+        <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
           <div class="m-6 bg-white">
             <h5
               class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
