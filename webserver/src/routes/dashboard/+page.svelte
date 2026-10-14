@@ -184,6 +184,22 @@
 
         return `Delivery in ${days} days, ${hours} hours, ${minutes} minutes`;
     }
+
+    function formatRemainingApprovalTime(deadline: number) {
+        const now = Math.floor(Date.now() / 1000);
+        const remainingSeconds = deadline - now;
+
+        if (remainingSeconds <= 0) {
+            return "Delivery overdue";
+        }
+
+        const totalMinutes = Math.floor(remainingSeconds / 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const hours = Math.floor((totalMinutes % 1440) / 60);
+        const minutes = totalMinutes % 60;
+
+        return `${days} days, ${hours} hours, ${minutes} minutes until approval deadline`;
+    }
 </script>
 
 <div class="p-6">
@@ -192,15 +208,15 @@
     </div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6">
         {#each hiredJobs as job}
-            <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
+            <Card class="max-w-xl max-h-xl flex flex-col justify-between">
                 <div class="m-6 space-y-2">
-                    <div class="bg-white flex justify-between items-end w-full">
+                    <div class="bg-white flex justify-between items-start gap-2 w-full">
                         <h5
                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                         >
                             {job.services?.title}
                         </h5>
-                        <Badge color="purple">
+                        <Badge color="purple" class="shrink-0">
                             {job.status}
                         </Badge>
                     </div>
@@ -231,11 +247,18 @@
                         </div>
                     {/if}
                     <div
-                        class="flex justify-between items-center text-gray-700 space-x-30"
+                        class="flex justify-between items-center text-gray-700 pt-4 mt-4 w-full"
                     >
+                        {#if job.status === "hired"}
                         <b class="mb-3 leading-tight font-normal">
                             {formatRemainingTime(job.deadline)}
                         </b>
+                        {/if}
+                        {#if job.status === "completed"}
+                        <b class="mb-3 leading-tight font-normal">
+                            {formatRemainingApprovalTime(job.approval_deadline)}
+                        </b>
+                        {/if}
                         <b class="mb-3 leading-tight font-normal">
                             Price: {job.services?.price} ETH
                         </b>
@@ -249,15 +272,15 @@
     </div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6">
         {#each runningJobs as job}
-            <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
+            <Card class="max-w-xl max-h-xl flex flex-col justify-between w-full">
                 <div class="m-6 space-y-2">
-                    <div class="bg-white flex justify-between items-center">
+                    <div class="bg-white flex justify-between items-start w-full">
                         <h5
                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                         >
                             {job.services?.title}
                         </h5>
-                        <Badge color="purple">
+                        <Badge color="purple" class="shrink-0">
                             {job.status}
                         </Badge>
                     </div>
@@ -288,10 +311,19 @@
                             >
                         </div>
                     {/if}
-                    <div class="flex justify-between items-center text-gray-70 space-x-30">
+  <div
+                        class="flex justify-between items-center text-gray-700 pt-4 mt-4 w-full"
+                    >
+                        {#if job.status === "hired"}
                         <b class="mb-3 leading-tight font-normal">
-                            {formatRemainingTime(job.deadline) }
+                            {formatRemainingTime(job.deadline)}
                         </b>
+                        {/if}
+                        {#if job.status === "completed"}
+                        <b class="mb-3 leading-tight font-normal">
+                            {formatRemainingApprovalTime(job.approval_deadline)}
+                        </b>
+                        {/if}
                         <b class="mb-3 leading-tight font-normal">
                             Price: {job.services?.price} ETH
                         </b>
