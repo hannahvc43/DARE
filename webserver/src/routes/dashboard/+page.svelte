@@ -5,6 +5,7 @@
     import { onMount } from "svelte";
     import { wallet } from "$lib/wallet.svelte";
     import { ethers } from "ethers";
+    import { goto } from "$app/navigation";
 
     let hiredJobs = $state<any>([]);
     let runningJobs = $state<any>([]);
@@ -76,7 +77,8 @@
                     console.error("Error: ", error);
                 } else {
                     alert("Work submitted succesfully!");
-                    window.location.reload();
+                    goto("/dashboard");
+
                 }
             }
         } else {
@@ -102,9 +104,8 @@
                 console.error("Error: ", error);
             } else {
                 alert("Work approved succesfully!");
-                window.location.reload();
-            }
-            window.location.reload();
+                goto("/dashboard");}
+            goto("/dashboard");
         } else {
             alert("Please install the MetaMask extension first");
         }
@@ -129,9 +130,9 @@
                     console.error("Error: ", error);
                 } else {
                     alert("Work refunded succesfully!");
-                    window.location.reload();
+                    goto("/dashboard");
                 }
-                window.location.reload();
+                goto("/dashboard");
             } catch (error: any) {
                 if (error.type == "Deadline has not passed yet") {
                     alert("Refund failed, please try again later");
@@ -161,9 +162,9 @@
                 console.error("Error: ", error);
             } else {
                 alert("Work approved succesfully!");
-                window.location.reload();
+                goto("/dashboard");
             }
-            window.location.reload();
+            goto("/dashboard");
         } else {
             alert("Please install the MetaMask extension first");
         }
@@ -189,11 +190,11 @@
     <div class="flex justify-between items-center gap-6">
         <h1 class="text-3xl font-bold text-white">Your hired services:</h1>
     </div>
-    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 m-6">
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6">
         {#each hiredJobs as job}
             <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
                 <div class="m-6 space-y-2">
-                    <div class="bg-white flex justify-between items-start">
+                    <div class="bg-white flex justify-between items-end w-full">
                         <h5
                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                         >
@@ -230,7 +231,7 @@
                         </div>
                     {/if}
                     <div
-                        class="flex justify-between items-center text-gray-700"
+                        class="flex justify-between items-center text-gray-700 space-x-30"
                     >
                         <b class="mb-3 leading-tight font-normal">
                             {formatRemainingTime(job.deadline)}
@@ -246,11 +247,11 @@
     <div class="flex justify-between items-center gap-6">
         <h1 class="text-3xl font-bold text-white">Your running services:</h1>
     </div>
-    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6">
         {#each runningJobs as job}
             <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
                 <div class="m-6 space-y-2">
-                    <div class="bg-white flex justify-between items-start">
+                    <div class="bg-white flex justify-between items-center">
                         <h5
                             class="mb-2 text-2xl font-bold tracking-tight text-gray-900"
                         >
@@ -261,6 +262,7 @@
                         </Badge>
                     </div>
                     {#if job.status === "hired"}
+                        <p><b>Client instructions: </b> {job.instructions}</p>
                         <div class="flex justify-between items-center">
                             <input
                                 type="url"
@@ -286,9 +288,9 @@
                             >
                         </div>
                     {/if}
-                    <div class="flex justify-between items-center text-gray-70">
+                    <div class="flex justify-between items-center text-gray-70 space-x-30">
                         <b class="mb-3 leading-tight font-normal">
-                            {formatRemainingTime(job.deadline)}
+                            {formatRemainingTime(job.deadline) }
                         </b>
                         <b class="mb-3 leading-tight font-normal">
                             Price: {job.services?.price} ETH

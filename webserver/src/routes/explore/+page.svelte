@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card } from "flowbite-svelte";
+  import { Card, Modal } from "flowbite-svelte";
   import jobArtifact from "../../../../contracts/artifacts/contracts/Job.sol/Job.json";
   import { ethers } from "ethers";
   import { supabase } from "$lib/supabaseClient";
@@ -8,8 +8,11 @@
     import { goto } from "$app/navigation";
 
   let services = $state<any>([]);
+  let popupModal = $state(false);
+  let currentService = $state<any>();
+  let description = $state("")
 
-  async function hireService(service: any) {
+  async function hireService(service: any, description: any) {
     if (typeof window !== "undefined" && window.ethereum) {
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -37,6 +40,7 @@
           service_id: service.service_id,
           status: "hired",
           deadline: Math.floor(Date.now() / 1000) + service.deliveryMinutes * 60,
+          instructions: description
         });
         console.log(data, error);
       } catch (error: any) {
@@ -92,7 +96,7 @@
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each services as service}
         <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
-          <div class="m-6 bg-white">
+          <div class="m-6 bg-white  w-full">
             <h5
               class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
             >
@@ -119,7 +123,8 @@
             </div>
             <button
               class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
-              onclick={() => hireService(service)}
+              onclick={() => {popupModal = true
+                             currentService = service}}
             >
               <b>Hire!</b>
             </button>
@@ -129,3 +134,21 @@
     </div>
   </div>
 </div>
+
+
+<Modal form bind:open={popupModal} size="xs">
+  <div class="text-center">
+    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Instructions for freelancer:</h3>
+    <div class="space-x-2">
+      <textarea class="bg-white rounded-lg text-black"
+      bind:value={description}
+      required>
+      </textarea>
+      <button
+              class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
+              onclick={() => hireService(currentService, description)} >
+              <b>Submit</b>
+      </button>
+    </div>
+  </div>
+</Modal>
