@@ -8,18 +8,20 @@ enum State {
     Approved
 }
 
+import "hardhat/console.sol";
+
 contract Job {
     address public immutable freelancer;
     address public client;
     uint256 public immutable amount; //amount of eth the client pays the freelancer for completing the job
-    uint256 public immutable daysOfWork; //amount of days until job should be completed
+    uint256 public immutable minutesOfWork; //amount of minutes until job should be completed
     uint256 public deadline; //timestamp of when it has to be complete
     uint256 public approvalDeadline;
     State public state;
 
-    constructor(address _freelancer, uint256 _amount, uint256 _daysOfWork) {
+    constructor(address _freelancer, uint256 _amount, uint256 _minutesOfWork) {
         amount = _amount;
-        daysOfWork = _daysOfWork;
+        minutesOfWork = _minutesOfWork;
         freelancer = _freelancer;
         state = State.Created;
     }
@@ -27,6 +29,7 @@ contract Job {
     function getRefund() public {
         require(state != State.Created, "Freelancer has not been hired yet");
         require(state != State.Completed, "Freelancer has already submitted work");
+        require(state == State.Hired, "Freelancer has to be hired");
         require(msg.sender == client, "Only clients can request refunds");
         require(block.timestamp > deadline, "Deadline has not passed yet");
 
@@ -70,6 +73,6 @@ contract Job {
 
         client = payable(msg.sender);
         state = State.Hired;
-        deadline = block.timestamp + (daysOfWork * 1 days);
+        deadline = block.timestamp + (minutesOfWork * 1 minutes);
     }
 }

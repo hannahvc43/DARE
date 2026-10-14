@@ -5,55 +5,77 @@
   import { supabase } from "$lib/supabaseClient";
   import { onMount } from "svelte";
   import { wallet } from "$lib/wallet.svelte";
-  
-  let services = $state<any>([])
+    import { goto } from "$app/navigation";
+
+  let services = $state<any>([]);
 
   async function hireService(service: any) {
     if (typeof window !== "undefined" && window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contractFactory = new ethers.ContractFactory(
-        jobArtifact.abi,
-        jobArtifact.bytecode,
-        signer,
-      );
-      const contract = await contractFactory.deploy(
-        service.freelancerAddress,
-        ethers.parseEther(service.price.toString()),
-        service.deliveryDays,
-      );
-      await contract.waitForDeployment();
-      await (contract as any).hire({
-        value: ethers.parseEther(service.price.toString()),
-      });
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contractFactory = new ethers.ContractFactory(
+          jobArtifact.abi,
+          jobArtifact.bytecode,
+          signer,
+        );
+        const contract = await contractFactory.deploy(
+          service.freelancerAddress,
+          ethers.parseEther(service.price.toString()),
+          service.deliveryMinutes,
+        );
+        await contract.waitForDeployment();
+        await (contract as any).hire({
+          value: ethers.parseEther(service.price.toString()),
+        });
 
-      console.log("service id:  ", service.service_id)
-      const { data, error } = await supabase.from("jobs").insert({
-        contract_address: await contract.getAddress(),
-        freelancer_address: service.freelancerAddress,
-        client_address: await signer.getAddress(),
-        service_id: service.service_id,
-        status: "hired",
-        deadline: Math.floor(Date.now()/1000) + service.deliveryDays * 86400
-      });
-      console.log(data, error);
+        console.log("service id:  ", service.service_id);
+        const { data, error } = await supabase.from("jobs").insert({
+          contract_address: await contract.getAddress(),
+          freelancer_address: service.freelancerAddress,
+          client_address: await signer.getAddress(),
+          service_id: service.service_id,
+          status: "hired",
+          deadline: Math.floor(Date.now() / 1000) + service.deliveryMinutes * 60,
+        });
+        console.log(data, error);
+      } catch (error: any) {
+        if (
+          error.reason === "Freelancer cannot hire himself" ||
+          error.message?.includes("Freelancer cannot hire himself")
+        ) {
+          alert("You cannot hire your own service!");
+        } else {
+          console.error("Unknown error ", error);
+        }
+      }
     } else {
       alert("Please install the MetaMask extension first");
     }
   }
 
-  onMount(async () => {
-    if(wallet.isConnected){
-        const {data, error} = await supabase.from("services").select("*")
-        if (error) {
-            console.error(error)
-        }
-        else{
-            services = data 
-        }    
-      }
-    })
+  function getDays(deliveryMinutes: any) {
+    return Math.floor(deliveryMinutes / 1440);
+  }
 
+  function getHours(deliveryMinutes: any) {
+    return Math.floor((deliveryMinutes % 1440) / 60);
+  }
+
+  function getMinutes(deliveryMinutes: any) {
+    return deliveryMinutes % 60;
+  }
+
+  onMount(async () => {
+    if (wallet.isConnected) {
+      const { data, error } = await supabase.from("services").select("*");
+      if (error) {
+        console.error(error);
+      } else {
+        services = data;
+      }
+    }
+  });
 </script>
 
 <div class="p-6">
@@ -61,7 +83,7 @@
     <h1 class="text-3xl font-bold text-white">Explore Services</h1>
     <button
       class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
-      onclick={()=>window.location.href="/explore/create-a-service"}
+      onclick={() => goto("/explore/create-a-service")}
     >
       <b>Create Service</b>
     </button>
@@ -82,13 +104,19 @@
               {service.description}
             </p>
             <div class="flex justify-between items-center">
-                    <b class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400">
-                        Delivery in {service.deliveryDays} days
-                    </b>
-                    <b class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400">
-                        Price: {service.price} ETH
-                    </b>  
-                </div>
+              <b
+                class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400"
+              >
+                Delivery in {getDays(service.deliveryMinutes)} days, {getHours(
+                  service.deliveryMinutes,
+                )} hours, {getMinutes(service.deliveryMinutes)} minutes
+              </b>
+              <b
+                class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400"
+              >
+                Price: {service.price} ETH
+              </b>
+            </div>
             <button
               class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
               onclick={() => hireService(service)}

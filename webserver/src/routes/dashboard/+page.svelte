@@ -57,14 +57,20 @@
             await contract.deliver();
 
             const link = linkInputs[job.id];
-            const approvalDeadline = Math.floor(Date.now()/1000 //minutes
-             + 7 * 86400) //plus seven days  written in minutes as well
+            const approvalDeadline = Math.floor(
+                Date.now() / 1000 + //minutes
+                    7 * 1440,
+            ); //plus seven days  written in minutes as well
             if (!link) {
                 alert("Please enter a submission link.");
             } else {
                 const { error } = await supabase
                     .from("jobs")
-                    .update({ submission_link: link, status: "completed", approval_deadline:approvalDeadline})
+                    .update({
+                        submission_link: link,
+                        status: "completed",
+                        approval_deadline: approvalDeadline,
+                    })
                     .eq("id", job.id);
                 if (error) {
                     console.error("Error: ", error);
@@ -88,37 +94,36 @@
                 signer,
             );
             await contract.approve();
-             const { error } = await supabase
-                    .from("jobs")
-                    .update({status: "approved" })
-                    .eq("id", job.id);
-                if (error) {
-                    console.error("Error: ", error);
-                } else {
-                    alert("Work approved succesfully!");
-                    window.location.reload();
-                }
-            window.location.reload()
-
+            const { error } = await supabase
+                .from("jobs")
+                .update({ status: "approved" })
+                .eq("id", job.id);
+            if (error) {
+                console.error("Error: ", error);
+            } else {
+                alert("Work approved succesfully!");
+                window.location.reload();
+            }
+            window.location.reload();
         } else {
             alert("Please install the MetaMask extension first");
         }
-
     }
 
-    async function requestRefund(job:any){
+    async function requestRefund(job: any) {
         if (typeof window !== "undefined" && window.ethereum) {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            const contract = new ethers.Contract(
-                job.contract_address,
-                jobArtifact.abi,
-                signer,
-            );
-        await contract.getRefund(); //way to know if this was succesful or not
-        const { error } = await supabase
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                const contract = new ethers.Contract(
+                    job.contract_address,
+                    jobArtifact.abi,
+                    signer,
+                );
+                await contract.getRefund();
+                const { error } = await supabase
                     .from("jobs")
-                    .update({status: "refunded" })
+                    .update({ status: "refunded" })
                     .eq("id", job.id);
                 if (error) {
                     console.error("Error: ", error);
@@ -126,13 +131,19 @@
                     alert("Work refunded succesfully!");
                     window.location.reload();
                 }
-        window.location.reload()
-
+                window.location.reload();
+            } catch (error: any) {
+                if (error.type == "Deadline has not passed yet") {
+                    alert("Refund failed, please try again later");
+                } else {
+                    console.error("Error: ", error);
+                }
+            }
         } else {
             alert("Please install the MetaMask extension first");
         }
     }
-    async function claimAutoApproval(job:any){
+    async function claimAutoApproval(job: any) {
         if (typeof window !== "undefined" && window.ethereum) {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
@@ -141,22 +152,36 @@
                 jobArtifact.abi,
                 signer,
             );
-        await contract.claimAutoApproval(); //way to know if this was succesful or not
-        const { error } = await supabase
-                    .from("jobs")
-                    .update({status: "approved" })
-                    .eq("id", job.id);
-                if (error) {
-                    console.error("Error: ", error);
-                } else {
-                    alert("Work approved succesfully!");
-                    window.location.reload();
-                }
-        window.location.reload()
-
+            await contract.claimAutoApproval(); //way to know if this was succesful or not
+            const { error } = await supabase
+                .from("jobs")
+                .update({ status: "approved" })
+                .eq("id", job.id);
+            if (error) {
+                console.error("Error: ", error);
+            } else {
+                alert("Work approved succesfully!");
+                window.location.reload();
+            }
+            window.location.reload();
         } else {
             alert("Please install the MetaMask extension first");
         }
+    }
+    function formatRemainingTime(deadline: number) {
+        const now = Math.floor(Date.now() / 1000);
+        const remainingSeconds = deadline - now;
+
+        if (remainingSeconds <= 0) {
+            return "Delivery overdue";
+        }
+
+        const totalMinutes = Math.floor(remainingSeconds / 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const hours = Math.floor((totalMinutes % 1440) / 60);
+        const minutes = totalMinutes % 60;
+
+        return `Delivery in ${days} days, ${hours} hours, ${minutes} minutes`;
     }
 </script>
 
@@ -179,24 +204,36 @@
                         </Badge>
                     </div>
                     {#if job.status === "completed"}
-                    <div class="flex justify-between items-center">
-                        <a href={job.submission_link}> <u>View result ↗</u></a>
-                        <button class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
-                                onclick={()=> approveWork(job)}>Approve
-                        </button>
-                    </div>
+                        <div class="flex justify-between items-center">
+                            <a href={job.submission_link}>
+                                <u>View result ↗</u></a
+                            >
+                            <button
+                                class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
+                                onclick={() => approveWork(job)}
+                                >Approve
+                            </button>
+                        </div>
                     {/if}
-                    {#if job.status === "hired" && job.deadline < Math.floor(Date.now()/1000)}
-                    <div class="flex justify-between items-center">
-                        <p>Freelancer has went over deadline you can claim your refund: </p>
-                        <button class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700" onclick={()=> requestRefund(job)}>Claim</button>
-                    </div>
+                    {#if job.status === "hired" && job.deadline < Math.floor(Date.now() / 1000)}
+                        <div class="flex justify-between items-center">
+                            <p>
+                                Freelancer has went over deadline you can claim
+                                your refund: {job.deadline} and {Math.floor(
+                                    Date.now() / 1000,
+                                )}
+                            </p>
+                            <button
+                                class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
+                                onclick={() => requestRefund(job)}>Claim</button
+                            >
+                        </div>
                     {/if}
                     <div
                         class="flex justify-between items-center text-gray-700"
                     >
                         <b class="mb-3 leading-tight font-normal">
-                            Delivery in {job.services?.deliveryDays} days
+                            {formatRemainingTime(job.deadline)}
                         </b>
                         <b class="mb-3 leading-tight font-normal">
                             Price: {job.services?.price} ETH
@@ -224,22 +261,34 @@
                         </Badge>
                     </div>
                     {#if job.status === "hired"}
-                    <div class="flex justify-between items-center">
-                        <input type="url" placeholder="paste a link to your deliverable (e.g. GitHub/WeTransfer" bind:value={linkInputs[job.id]}>
-                        <button class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700" onclick={()=> submitWork(job)}>Submit</button>
-                    </div>
+                        <div class="flex justify-between items-center">
+                            <input
+                                type="url"
+                                placeholder="paste a link to your deliverable (e.g. GitHub/WeTransfer"
+                                bind:value={linkInputs[job.id]}
+                            />
+                            <button
+                                class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
+                                onclick={() => submitWork(job)}>Submit</button
+                            >
+                        </div>
                     {/if}
-                    {#if job.status === "submitted" && Math.floor(Date.now()/1000) > job.approval_deadline}
-                    <div class="flex justify-between items-center">
-                        <p>Client has went over deadline to approve, you can claim auto approval: </p>
-                        <button class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700" onclick={()=> claimAutoApproval(job)}>Approve</button>
-                    </div>
+                    {#if job.status === "submitted" && Math.floor(Date.now() / 1000) > job.approval_deadline}
+                        <div class="flex justify-between items-center">
+                            <p>
+                                Client has went over deadline to approve, you
+                                can claim auto approval:
+                            </p>
+                            <button
+                                class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
+                                onclick={() => claimAutoApproval(job)}
+                                >Approve</button
+                            >
+                        </div>
                     {/if}
-                    <div
-                        class="flex justify-between items-center text-gray-700"
-                    >
+                    <div class="flex justify-between items-center text-gray-70">
                         <b class="mb-3 leading-tight font-normal">
-                            Delivery in {job.services?.deliveryDays} days
+                            {formatRemainingTime(job.deadline)}
                         </b>
                         <b class="mb-3 leading-tight font-normal">
                             Price: {job.services?.price} ETH

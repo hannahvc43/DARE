@@ -5,7 +5,13 @@
     let title = $state("");
     let description = $state("");
     let price = $state<number>(0);
-    let amountOfDays = $state<number>(0);
+    let days = $state<number>(0);
+    let hours = $state<number>(0);
+    let minutes = $state<number>(0);
+
+    function toMinutes(){
+        return (days * 1440) + (hours * 60)+minutes
+    }    
 
     async function createService() {
         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -15,7 +21,7 @@
             title: title,
             description: description,
             price: price,
-            deliveryDays: amountOfDays,
+            deliveryMinutes: toMinutes(),
             freelancerAddress: await signer.getAddress(),
         });
         console.log(data, error);
@@ -32,7 +38,7 @@
                 >
                     Service Title</label
                 >
-                <input id="title" type="text" bind:value={title} required />
+                <input  class="rounded-lg" id="title" type="text" bind:value={title} required />
             </div>
             <label
                 for="description"
@@ -41,6 +47,7 @@
                 Description</label
             >
             <input
+                class="rounded-lg"
                 id="description"
                 type="text"
                 bind:value={description}
@@ -53,22 +60,47 @@
                 >
                     Price (ETH)</label
                 >
-                <input id="price" type="number" bind:value={price} required />
+                <input class="rounded-lg"id="price" type="number" min="0" step="any" bind:value={price} required />
             </div>
-            <div>
-                <label
-                    for="delivery"
-                    class="mb-2 text-2xl font-bold tracking-tight text-white"
-                >
-                    Delivery within ... days:
-                </label>
-                <input
-                    id="delivery"
-                    type="number"
-                    bind:value={amountOfDays}
-                    required
-                />
+           <div>
+            <h1 class="mb-2 text-2xl font-bold tracking-tight text-white">
+                Delivery Timeframe
+            </h1>
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <span class="text-gray-400 mt-2">Days</span>
+                    <input 
+                        type="number" 
+                        min="0" 
+                        bind:value={days} 
+                        class="w-full p-3 bg-white border rounded-lg text-black text-center" 
+                    />
+                </div>
+                <div>
+                    <span class="text-gray-400 mt-2">Hours</span>
+                    <input 
+                        type="number" 
+                        min="0" 
+                        max="23" 
+                        bind:value={hours} 
+                        class="w-full p-3 bg-white border rounded-lg text-black text-center" 
+                    />
+                </div>
+                <div>
+                    <span class="text-gray-400 mt-2">Minutes</span>
+                    <input 
+                        type="number" 
+                        min="0" 
+                        max="59" 
+                        bind:value={minutes} 
+                        class="w-full p-3 bg-white border rounded-lg text-black text-center" 
+                    />
+                </div>
             </div>
+            <p class="text-purple-400 mt-2">
+                Delivery in: {days} days, {hours} hours, {minutes} minutes
+            </p>
+        </div>
 
             <button
                 type="submit"
