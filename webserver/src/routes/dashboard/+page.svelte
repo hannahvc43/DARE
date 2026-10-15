@@ -20,7 +20,6 @@
         if (error) {
             console.error(error);
         } else {
-            console.log("data:", data);
             runningJobs = data;
         }
     }
@@ -34,7 +33,6 @@
         if (error) {
             console.error(error);
         } else {
-            console.log("data:", data);
             hiredJobs = data;
         }
     }
@@ -144,6 +142,7 @@
             alert("Please install the MetaMask extension first");
         }
     }
+
     async function claimAutoApproval(job: any) {
         if (typeof window !== "undefined" && window.ethereum) {
             const provider = new ethers.BrowserProvider(window.ethereum);
@@ -223,7 +222,7 @@
                     {#if job.status === "completed"}
                         <div class="flex justify-between items-center">
                             <a href={job.submission_link}>
-                                <u>View result ↗</u></a
+                                <u>View result</u></a
                             >
                             <button
                                 class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
@@ -236,9 +235,7 @@
                         <div class="flex justify-between items-center">
                             <p>
                                 Freelancer has went over deadline you can claim
-                                your refund: {job.deadline} and {Math.floor(
-                                    Date.now() / 1000,
-                                )}
+                                your refund.
                             </p>
                             <button
                                 class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"
@@ -284,7 +281,7 @@
                             {job.status}
                         </Badge>
                     </div>
-                    {#if job.status === "hired"}
+                    {#if job.status === "hired" && job.deadline > Math.floor(Date.now() / 1000)}
                         <p><b>Client instructions: </b> {job.instructions}</p>
                         <div class="flex justify-between items-center">
                             <input
@@ -302,7 +299,7 @@
                         <div class="flex justify-between items-center">
                             <p>
                                 Client has went over deadline to approve, you
-                                can claim auto approval:
+                                can claim auto approval.
                             </p>
                             <button
                                 class="rounded-lg bg-purple-600 text-white p-2 hover:bg-purple-700"

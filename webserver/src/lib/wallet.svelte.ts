@@ -8,7 +8,6 @@ class Wallet {
 				const account = await window.ethereum.request({
 					method: "eth_requestAccounts"
 				})
-				console.log("Connected: ", account[0])
 				this.address = account[0]
                 this.isConnected = true
 			}

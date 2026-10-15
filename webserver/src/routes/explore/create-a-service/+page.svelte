@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { supabase } from "$lib/supabaseClient";
     import { ethers } from "ethers";
 
@@ -24,7 +25,12 @@
             deliveryMinutes: toMinutes(),
             freelancerAddress: await signer.getAddress(),
         });
-        console.log(data, error);
+        if (error){
+            console.log(data, error);
+        }
+        else{
+        goto("../explore")
+        }
     }
 </script>
 
