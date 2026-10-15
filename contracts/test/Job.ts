@@ -27,7 +27,12 @@ describe("Job", async function () {
         expect(await job.minutesOfWork()).to.equal(minutesOfWork)
         expect(await job.amount()).to.equal(amount)
     });
-
+    it("Should do a null check on the freelancer address", async function () {
+        const amount = ethers.parseEther("1.0");
+        const minutesOfWork = 3 * 1440 //= 3 days
+        const Job = await hre.ethers.getContractFactory("Job");
+        await expect(Job.deploy(ethers.ZeroAddress, amount, minutesOfWork)).to.be.revertedWith("Freelancer address cannot be zero");
+    });
     describe("hiring: ", function () {
         it("Should allow clients to hire a freelancer", async function () {
             const { job, amount, minutesOfWork, freelancer, client } = await deployJobFixture();

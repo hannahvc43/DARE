@@ -8,8 +8,6 @@ enum State {
     Approved
 }
 
-import "hardhat/console.sol";
-
 contract Job {
     address public immutable freelancer;
     address public client;
@@ -20,6 +18,7 @@ contract Job {
     State public state;
 
     constructor(address _freelancer, uint256 _amount, uint256 _minutesOfWork) {
+        require(_freelancer != address(0), "Freelancer address cannot be zero"); //avoid missing-zero-check
         amount = _amount;
         minutesOfWork = _minutesOfWork;
         freelancer = _freelancer;
