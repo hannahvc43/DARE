@@ -5,7 +5,7 @@
   import { supabase } from "$lib/supabaseClient";
   import { onMount } from "svelte";
   import { wallet } from "$lib/wallet.svelte";
-    import { goto } from "$app/navigation";
+  import { goto } from "$app/navigation";
 
   let services = $state<any>([]);
   let popupModal = $state(false);
@@ -32,7 +32,6 @@
           value: ethers.parseEther(service.price.toString()),
         });
 
-        console.log("service id:  ", service.service_id);
         const { data, error } = await supabase.from("jobs").insert({
           contract_address: await contract.getAddress(),
           freelancer_address: service.freelancerAddress,
@@ -42,7 +41,6 @@
           deadline: Math.floor(Date.now() / 1000) + service.deliveryMinutes * 60,
           instructions: description
         });
-        console.log(data, error);
       } catch (error: any) {
         if (
           error.reason === "Freelancer cannot hire himself" ||
@@ -95,8 +93,8 @@
   <div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each services as service}
-        <Card horizontal size="sm" class="max-w-xl max-h-xl flex">
-          <div class="m-6 bg-white  w-full">
+        <Card class="max-w-xl max-h-xl flex flex-col justify-between items-start">
+          <div class="m-6">
             <h5
               class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
             >
