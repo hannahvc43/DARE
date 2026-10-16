@@ -19,6 +19,7 @@ npm run dev
 # run the local blockchain node:
 cd contracts
 npm install
+npx hardhat compile
 npx hardhat node
 ```
 
@@ -38,13 +39,13 @@ Once this has been done you can click the connect wallet button on the top right
 ## Technical decisions and details
 
 ### Tech stack
-- **Hardhat**: Used for developing, testing and deploying smart contract. Also provides us with a local testnet node, along with pre-funded accounts.
+- **Hardhat**: Used for developing, testing and deploying smart contract. Also provides us with a local testnet node, along with pre-funded accounts. The smart contract itself can be found in contracts/contracts/Job.sol
 - **SvelteKit**: Framework used for developing the UI
 - **Supabase**: backend platform which offers a relational database
 
 ### Tests
 
-The smart contract was thoroughly tested using unit tests (found contracts/test/Job.ts), these test can be ran using the npx hardhat test command.
+The smart contract was thoroughly tested using unit tests (found in contracts/test/Job.ts), these test can be ran using the npx hardhat test command.
 Reaching 100% branch coverage (can be tested by running npx hardhat coverage).
 
 
